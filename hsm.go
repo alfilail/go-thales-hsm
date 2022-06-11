@@ -34,5 +34,29 @@ func (c *Hsm) Encrypt(clearPin, cardNumber string) (string, error) {
 		return "", errJG
 	}
 	PINblock := service.CommonResponse(JGHsmRes)
+
 	return PINblock, nil
+}
+
+func (c *Hsm) Decrypt(pinBlock, cardNumber string) (string, error) {
+	c.HsmClient.DialTcp()
+	defer c.HsmClient.Close()
+
+	hsmCardNumber := cardNumber[len(cardNumber)-13 : len(cardNumber)-1]
+
+	JEheader := service.JEPINZPKtoLMK(c.HsmClient.Zpk, pinBlock, 1, hsmCardNumber)
+	JEHsmRes, errJE := c.HsmClient.SendRawToHSM(JEheader)
+	if errJE != nil {
+		return "", errJE
+	}
+	PINunderLMK := service.CommonResponse(JEHsmRes)
+
+	NGheader := service.NGPINLMKtoClear(hsmCardNumber, PINunderLMK)
+	NGHsmRes, errNG := c.HsmClient.SendRawToHSM(NGheader)
+	if errNG != nil {
+		return "", errNG
+	}
+	ClearPIN := service.NGResponse(NGHsmRes)
+
+	return ClearPIN, nil
 }
