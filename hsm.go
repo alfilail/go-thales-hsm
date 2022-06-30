@@ -6,11 +6,11 @@ type Hsm struct {
 	HsmClient *service.HsmTcpClient
 }
 
-func NewClient(servAddr, zpk string) *Hsm {
+func NewClient(servAddr, zpk, cmdHead string) *Hsm {
 	return &Hsm{HsmClient: &service.HsmTcpClient{
 		ServAddr:   servAddr,
 		Zpk:        zpk,
-		HsmCmdHead: "TLBG",
+		HsmCmdHead: cmdHead,
 		BufferSize: 1024,
 	}}
 }

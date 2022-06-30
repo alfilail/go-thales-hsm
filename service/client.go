@@ -3,6 +3,7 @@ package service
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"net"
 )
 
@@ -35,6 +36,7 @@ func (client *HsmTcpClient) Close() {
 }
 
 func (client *HsmTcpClient) SendRawToHSM(cmd string) (string, error) {
+	fmt.Println("HEADER: " + ExcludeBigendianHdr(client.HsmCmdHead, cmd))
 	_, errWrite := client.Conn.Write([]byte(ExcludeBigendianHdr(client.HsmCmdHead, cmd)))
 	if errWrite != nil {
 		return "", errWrite
@@ -51,5 +53,6 @@ func (client *HsmTcpClient) SendRawToHSM(cmd string) (string, error) {
 	}
 
 	buffer = bytes.Trim(buffer, "\x00")
+	fmt.Println("RESPONSE: " + string(buffer[:]))
 	return string(buffer[:]), nil
 }
